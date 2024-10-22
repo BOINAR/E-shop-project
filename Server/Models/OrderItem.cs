@@ -1,9 +1,14 @@
 namespace Server.Models
 {
-    public class OrderItem {
-        public int Id {get;set;}
-        public Order? OrderId {get; set;}
-        public Product? ProductId {get; set;}
-        public int Quantity {get;set;}
+    public class OrderItem
+    {
+        public int Id { get; set; }
+
+        public int OrderId {get;set;}
+        public Order? Orders { get; set; }
+
+        public int ProductId { get; set; }
+        public Product? Products { get; set; }
+        public int Quantity { get; set; }
     }
 }

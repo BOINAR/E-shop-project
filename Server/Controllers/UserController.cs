@@ -36,6 +36,13 @@ namespace Server.Controllers
 
             return Ok(UserLogin);
         }
+        [HttpPost("logout")]
+        public IActionResult Logout(int userId)
+        {
+            // Logique pour déconnecter l'utilisateur
+            _userService.Logout(userId);
+            return Ok(); // Retourne une réponse 200 OK
+        }
 
     }
 }
