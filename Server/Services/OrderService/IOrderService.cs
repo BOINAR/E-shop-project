@@ -1,6 +1,6 @@
 using Server.Models;
 
-namespace Server.Services
+namespace Server.Services.OrderService
 {
     public interface IOrderService
     {

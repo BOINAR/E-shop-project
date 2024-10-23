@@ -3,7 +3,7 @@ using Server.Models;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Server.Services
+namespace Server.Services.OrderService
 {
     public class OrderService : IOrderService
     {

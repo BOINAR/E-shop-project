@@ -1,6 +1,6 @@
 using Server.Models;
 
-namespace Server.Services
+namespace Server.Services.ProductService
 {
     public class ProductService : IProductService
     {
