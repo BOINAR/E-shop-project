@@ -8,7 +8,9 @@ namespace Server.Services.OrderService
         Order AddProductToOrder(int orderId, int productId);
         Order RemoveProductFromOrder(int orderId, int productId);
 
-         void UpdateOrderTotal(Order order); 
+        IEnumerable<Order> GetUserOrders(int userId);
+
+        void UpdateOrderTotal(Order order);
 
 
 

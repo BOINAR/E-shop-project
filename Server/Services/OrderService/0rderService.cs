@@ -92,6 +92,13 @@ namespace Server.Services.OrderService
             // Retourner la commande mise à jour
             return order;
         }
+
+        public IEnumerable<Order> GetUserOrders(int userId)
+        {
+            // Logique pour récupérer toutes les commandes d'un utilisateur
+            return _orders.Where(o => o.Id == userId).ToList();
+        }
+
         // Méthode pour recalculer le total de la commande
         public void UpdateOrderTotal(Order order)
         {
