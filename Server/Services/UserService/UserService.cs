@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Server.Models;
 using System.Collections.Generic;
 
-namespace Server.Services
+namespace Server.Services.UserService
 {
     public class UserService : IUserService
     {
