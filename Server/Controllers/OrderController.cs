@@ -4,6 +4,8 @@ using Server.Services.OrderService;
 
 namespace Server.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class OrderController : ControllerBase
     {
         private readonly IOrderService? _OrderService;
@@ -31,15 +33,17 @@ namespace Server.Controllers
         }
 
         [HttpDelete("{orderId}/products/{productId}")]
-public ActionResult<Order> RemoveFromOrder(int orderId, int productId){
-    var order = _OrderService?.RemoveProductFromOrder(orderId,productId);
-    return Ok(order);
-}
+        public ActionResult<Order> RemoveFromOrder(int orderId, int productId)
+        {
+            var order = _OrderService?.RemoveProductFromOrder(orderId, productId);
+            return Ok(order);
+        }
 
-[HttpGet("{UserId}")]
-public ActionResult<Order> GetUsersOrders(int UserId){
-var orders = _OrderService?.GetUserOrders(UserId);
-return Ok(orders);
-}
+        [HttpGet("{UserId}")]
+        public ActionResult<Order> GetUsersOrders(int UserId)
+        {
+            var orders = _OrderService?.GetUserOrders(UserId);
+            return Ok(orders);
+        }
     }
 }

@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Server.Models;
 namespace Server.Services.ProductService
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
 
@@ -35,9 +37,9 @@ namespace Server.Services.ProductService
         }
 
         [HttpPut("{productId}")]
-        public ActionResult<Product> UpdateProduct(int productId, Product updatedProduct, string newName, decimal newPrice, string newDescription)
+        public ActionResult<Product> UpdateProduct(int productId, [FromBody] Product updatedProduct)
         {
-            var product = _productService?.UpdateProduct(productId, updatedProduct, newName, newPrice, newDescription);
+            var product = _productService?.UpdateProduct(productId, updatedProduct);
             return Ok(product);
         }
 

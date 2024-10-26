@@ -27,7 +27,7 @@ namespace Server.Services.ProductService
             return newProduct;
         }
 
-        public Product UpdateProduct(int productId, Product updatedProduct, string newName, decimal newPrice, string newDescription)
+        public Product UpdateProduct(int productId, Product updatedProduct)
         {
             var product = GetProductById(productId);
             if (product == null)
@@ -37,9 +37,9 @@ namespace Server.Services.ProductService
             }
 
             // Mettre à jour les champs du produit
-            product.Name = newName;
-            product.Price = newPrice;
-            product.Description = newDescription;
+            product.Name = updatedProduct.Name;
+            product.Price = updatedProduct.Price;
+            product.Description = updatedProduct.Description;
 
             // Retourner le produite mis à jour
             return product;

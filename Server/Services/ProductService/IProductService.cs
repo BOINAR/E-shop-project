@@ -9,7 +9,7 @@ namespace Server.Services.ProductService
         IEnumerable<Product> GetAllProduct();
         Product GetProductById(int productId);
         Product CreateProduct(Product newProduct);
-        Product UpdateProduct(int productId, Product updatedProduct, string newName, decimal newPrice, string newDescription);
+        Product UpdateProduct(int productId, Product updatedProduct);
         void DeleteProduct(int ProductId);
 
     }

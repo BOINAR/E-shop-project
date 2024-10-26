@@ -1,4 +1,5 @@
 
+using Microsoft.VisualBasic;
 using Server.Models;
 namespace Server.Services.CategoryService
 {
@@ -23,10 +24,15 @@ namespace Server.Services.CategoryService
             return category;
         }
 
-        public Category CreateCategory(Category newCategory)
+        public Category AddCategory(Category newCategory)
         {
             _categories.Add(newCategory);
             return newCategory;
+        }
+        public void RemoveCategory(int categoryId)
+        {
+            var category = GetCategoryById(categoryId);
+            _categories.Remove(category);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Server.Models
         public string? Password { get; set; }
         public string? LastName { get; set; }
         public string? FirstName { get; set; }
-        public Adress? Adress { get; set; }
+        public Address? Address { get; set; }
         public ICollection<Order>? Orders { get; set; }
     }
 

@@ -1,9 +1,9 @@
 namespace Server.Models
 {
-    public class Adress {
+    public class Address {
     public int Id {get; set;}
-    public string? street {get; set;}
-    public string? city {get; set;}
+    public string? Street {get; set;}
+    public string? City {get; set;}
     public string? PostalCode {get; set;}
 }
 }
