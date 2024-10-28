@@ -19,28 +19,28 @@ namespace Server.Controllers
 
 
         [HttpPost("register")]
-        public ActionResult<User> Register([FromBody] User newUser)
+        public async Task<ActionResult<User>> Register([FromBody] User newUser)
         {
-            var user = _userService.Register(newUser);
+            var user = await _userService.RegisterAsync(newUser);
             return Ok(user);
         }
 
         [HttpPost("Login")]
-        public ActionResult<User> Login([FromBody] User loginRequest)
+        public async Task<ActionResult<User>> Login([FromBody] User loginRequest)
         {
             if (string.IsNullOrEmpty(loginRequest.Email) || string.IsNullOrEmpty(loginRequest.Password))
             {
                 return BadRequest("Email and password are required.");
             }
-            var UserLogin = _userService.Login(loginRequest.Email, loginRequest.Password);
+            var UserLogin = await _userService.LoginAsync(loginRequest.Email, loginRequest.Password);
 
             return Ok(UserLogin);
         }
         [HttpPost("logout")]
-        public IActionResult Logout(int userId)
+        public async Task<IActionResult> Logout(int userId)
         {
             // Logique pour déconnecter l'utilisateur
-            _userService.Logout(userId);
+            await _userService.LogoutAsync(userId);
             return Ok(); // Retourne une réponse 200 OK
         }
 

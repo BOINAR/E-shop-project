@@ -16,26 +16,29 @@ namespace Server.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Order> CreateOrder([FromBody] Order newOrder)
+        public async Task<ActionResult<Order>> CreateOrder([FromBody] Order newOrder)
         {
 
             if (_OrderService == null) { throw new Exception("_OrderService is null"); }
-            var order = _OrderService.CreateOrder(newOrder);
+            var order = await _OrderService.CreateOrder(newOrder);
             return Ok(newOrder);
         }
 
         [HttpPost("{orderId}/products/{productId}")]
-        public ActionResult<Order> AddProductFromOrder(int orderId, int productId)
+        public async Task<ActionResult<Order>> AddProductFromOrder(int orderId, int productId)
         {
             if (_OrderService == null) { throw new Exception("_OrderService is null"); }
-            var order = _OrderService.AddProductToOrder(orderId, productId);
+            var order = await _OrderService.AddProductToOrder(orderId, productId);
             return Ok(order);
         }
 
         [HttpDelete("{orderId}/products/{productId}")]
-        public ActionResult<Order> RemoveFromOrder(int orderId, int productId)
+        public async Task<ActionResult<Order>> RemoveFromOrder(int orderId, int productId)
         {
-            var order = _OrderService?.RemoveProductFromOrder(orderId, productId);
+            if (_OrderService == null){
+                throw new Exception("orderservice is null");
+            }
+            var order = await _OrderService.RemoveProductFromOrder(orderId, productId);
             return Ok(order);
         }
 

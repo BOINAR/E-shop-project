@@ -4,9 +4,9 @@ namespace Server.Services.CategoryService
 {
     public interface ICategoryService
     {
-        IEnumerable<Category> GetAllCategories();
-        Category GetCategoryById(int categoryId);
-        Category AddCategory(Category newCategory);
+        Task<IEnumerable<Category>> GetAllCategories();
+        Task<Category> GetCategoryById(int categoryId);
+        Task<Category> AddCategory(Category newCategory);
         void RemoveCategory(int categoryId);
     }
 }

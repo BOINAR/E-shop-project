@@ -1,38 +1,46 @@
 
 using Microsoft.VisualBasic;
 using Server.Models;
+using Server.Repositories.CategoryRepository;
 namespace Server.Services.CategoryService
 {
 
 
     public class CategoryService : ICategoryService
     {
-        private readonly List<Category> _categories = new List<Category>();
+        private readonly ICategoryRepository? _categories;
 
-        public IEnumerable<Category> GetAllCategories()
+        public CategoryService(ICategoryRepository categories)
         {
-            return _categories;
+            _categories = categories;
         }
 
-        public Category GetCategoryById(int categoryId)
+        public async Task<IEnumerable<Category>> GetAllCategories()
         {
-            var category = _categories.FirstOrDefault(c => c.Id == categoryId);
-            if (category == null)
-            {
-                throw new Exception($"Category with ID {categoryId} not found");
-            }
+            if (_categories == null) { throw new Exception("Categories is null"); }
+            return await _categories.GetAllAsync();
+        }
+
+        public async Task<Category> GetCategoryById(int categoryId)
+        {
+            if (_categories == null) { throw new Exception("Categories is null"); }
+            var category = await _categories.GetByIdAsync(categoryId);
             return category;
-        }
 
-        public Category AddCategory(Category newCategory)
-        {
-            _categories.Add(newCategory);
-            return newCategory;
+
         }
-        public void RemoveCategory(int categoryId)
+        public async Task<Category> AddCategory(Category newCategory)
         {
-            var category = GetCategoryById(categoryId);
-            _categories.Remove(category);
+
+            if (_categories == null) { throw new Exception("Categories is null"); }
+            await _categories.AddAsync(newCategory);
+            return newCategory;
+
+        }
+        public async Task RemoveCategory(Category category)
+        {
+            if (_categories == null) { throw new Exception("Categories is null"); }
+            await _categories.DeleteAsync(category);
         }
     }
 }

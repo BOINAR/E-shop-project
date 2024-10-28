@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity.Data;
 using Server.Models;
+using Server.Repositories.OrderRepository;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 
@@ -7,19 +8,24 @@ namespace Server.Services.OrderService
 {
     public class OrderService : IOrderService
     {
-        private readonly List<Order> _orders = new List<Order>();
+        private readonly IOrderRepository _orders;
 
-        public Order CreateOrder(Order newOrder)
+        public OrderService(IOrderRepository order)
+        {
+            _orders = order;
+        }
+
+        public async Task<Order> CreateOrder(Order newOrder)
         {
             // Logique pour créer une nouvelle commande
-            _orders.Add(newOrder);
+            await _orders.AddAsync(newOrder);
             return newOrder;
         }
 
-        public Order AddProductToOrder(int orderId, int productId)
+        public async Task<Order> AddProductToOrder(int orderId, int productId)
         {
-            // Logique pour ajouter un produit à une commande
-            var order = _orders.FirstOrDefault(o => o.Id == orderId);
+            // Récupérer la commande par son Id
+            var order = await _orders.GetByIdAsync(orderId);
             if (order == null)
             {
                 throw new Exception("Order not found");
@@ -53,10 +59,10 @@ namespace Server.Services.OrderService
 
             return order;
         }
-        public Order RemoveProductFromOrder(int orderId, int productId)
+        public async Task<Order> RemoveProductFromOrder(int orderId, int productId)
         {
             // Rechercher la commande par son Id
-            var order = _orders.FirstOrDefault(o => o.Id == orderId);
+            var order = await _orders.GetByIdAsync(orderId);
 
             // Si la commande n'existe pas, on lève une exception
             if (order == null)
@@ -73,7 +79,7 @@ namespace Server.Services.OrderService
                 throw new Exception("Product not found in the order");
             }
 
-            // Si la quantité de l'article est supérieure à 1, on réduit simplement la quantité
+            // Si la quantité de l'article est supérieure à 1, on réduit la quantité
             if (orderItem.Quantity > 1)
             {
                 // Réduire la quantité de l'article dans la commande
@@ -93,10 +99,10 @@ namespace Server.Services.OrderService
             return order;
         }
 
-        public IEnumerable<Order> GetUserOrders(int userId)
+        public async Task<IEnumerable<Order>> GetUserOrders(int userId)
         {
             // Logique pour récupérer toutes les commandes d'un utilisateur
-            return _orders.Where(o => o.Id == userId).ToList();
+            return await _orders.GetOrderByUserIdAsync(userId);
         }
 
         // Méthode pour recalculer le total de la commande

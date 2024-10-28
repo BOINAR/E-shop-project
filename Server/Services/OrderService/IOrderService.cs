@@ -4,11 +4,11 @@ namespace Server.Services.OrderService
 {
     public interface IOrderService
     {
-        Order CreateOrder(Order newOrder);
-        Order AddProductToOrder(int orderId, int productId);
-        Order RemoveProductFromOrder(int orderId, int productId);
+        Task<Order> CreateOrder(Order newOrder);
+        Task<Order> AddProductToOrder(int orderId, int productId);
+        Task<Order> RemoveProductFromOrder(int orderId, int productId);
 
-        IEnumerable<Order> GetUserOrders(int userId);
+        Task<IEnumerable<Order>> GetUserOrders(int userId);
 
         void UpdateOrderTotal(Order order);
 
