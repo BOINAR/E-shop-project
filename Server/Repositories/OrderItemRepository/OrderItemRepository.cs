@@ -13,7 +13,7 @@ namespace Server.Repositories.OrderItemRepository
             _context = context;
         }
 
-        public async Task<OrderItem> GetByIdAsync(int id)
+        public async Task<OrderItem> GetOrderItemById(int id)
         {
             return await _context.OrderItems.FindAsync(id) ?? throw new Exception("OrderItem is null");
         }

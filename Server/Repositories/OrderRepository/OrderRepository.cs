@@ -25,7 +25,12 @@ namespace Server.Repositories.OrderRepository
 
         public async Task<IEnumerable<Order>> GetOrderByUserIdAsync(int userId)
         {
-            return await _context.Orders.Where(order => order.Id == userId).ToListAsync();
+            
+            return await _context.Orders
+                         .Include(o => o.OrderItems)
+                         .ThenInclude(oi => oi.Products)
+                         .Where(o => o.UserId == userId)
+                         .ToListAsync();
         }
 
         public async Task AddAsync(Order order)
