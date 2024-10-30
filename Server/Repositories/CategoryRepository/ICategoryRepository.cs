@@ -9,7 +9,7 @@ namespace Server.Repositories.CategoryRepository
         Task<IEnumerable<Category>> GetAllAsync();
         Task AddAsync(Category category);
         Task UpdateAsync(Category category);
-        Task DeleteAsync(Category category);
+        Task<bool> DeleteCategoryByIdAsync(int categoryId);
 
     }
 }

@@ -35,10 +35,14 @@ namespace Server.Repositories.CategoryRepository
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Category category)
+        public async Task<bool> DeleteCategoryByIdAsync(int categoryId)
+        
         {
+            var category = await GetByIdAsync(categoryId);
+            if (category == null) { return false; }
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

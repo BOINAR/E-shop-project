@@ -38,11 +38,11 @@ namespace Server.Repositories.CartItemRepository
             }
         }
 
-        public async Task<IEnumerable<CartItem>> GetByCartIdAsync(int cartId)
+        public async Task<IEnumerable<CartItem>> GetCartItemByIdAsync(int cartItemId)
         {
             return await _context.CartItems
                                  .Include(ci => ci.Product) // Inclure les détails du produit
-                                 .Where(ci => ci.Id == cartId)
+                                 .Where(ci => ci.Id == cartItemId)
                                  .ToListAsync();
         }
     }

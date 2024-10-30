@@ -9,6 +9,6 @@ namespace Server.Services.CartItemService
         Task<CartItem> AddCartItemAsync(CartItem cartItem);
         Task UpdateCartItemAsync(CartItem cartItem);
         Task DeleteCartItemAsync(int cartItemId);
-        Task<IEnumerable<CartItem>> GetCartItemsByCartIdAsync(int cartId);
+        Task<IEnumerable<CartItem>> GetCartItemByIdAsync(int cartId);
     }
 }

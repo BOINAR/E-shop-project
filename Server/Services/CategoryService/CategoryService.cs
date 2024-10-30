@@ -37,10 +37,16 @@ namespace Server.Services.CategoryService
             return newCategory;
 
         }
-        public async Task RemoveCategory(Category category)
+        public async Task RemoveCategory(int categoryId)
         {
-            if (_categories == null) { throw new Exception("Categories is null"); }
-            await _categories.DeleteAsync(category);
+            if (_categories == null)
+            {
+                throw new Exception("Category is null");
+            }
+            await _categories.DeleteCategoryByIdAsync(categoryId);
+
+
+
         }
     }
 }

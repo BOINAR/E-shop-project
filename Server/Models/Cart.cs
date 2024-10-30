@@ -4,7 +4,7 @@ namespace Server.Models
     {
         public int Id { get; set; }
         public User? Users { get; set; }
-        public ICollection<CartItem>? CartItems { get; set; }
+        public ICollection<CartItem>? CartItems { get; set; } = new List<CartItem>();
 
     }
 }

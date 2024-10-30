@@ -7,6 +7,6 @@ namespace Server.Services.CategoryService
         Task<IEnumerable<Category>> GetAllCategories();
         Task<Category> GetCategoryById(int categoryId);
         Task<Category> AddCategory(Category newCategory);
-        void RemoveCategory(int categoryId);
+        Task RemoveCategory(int categoryId);
     }
 }
