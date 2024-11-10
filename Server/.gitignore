@@ -1,0 +1,27 @@
+# Ignorer le fichier .env
+.env
+
+# Ignorer les fichiers binaires et de compilation
+bin/
+obj/
+
+# Ignorer les fichiers de log
+*.log
+
+# Ignorer les fichiers de configuration utilisateur
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignorer les dossiers générés par NuGet
+**/packages
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Ignorer les fichiers spécifiques à macOS
+.DS_Store
+.AppleDouble

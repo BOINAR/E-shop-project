@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB} # Nom de la base de données
+      POSTGRES_USER: ${POSTGRES_USER} # Nom d'utilisateur pour la base de données
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Mot de passe pour l'utilisateur
+    ports:
+      - "5432:5432" # Port de la base de données
+    volumes:
+      - db-data:/var/lib/postgresql/data # Volume pour persister les données
+
+  app:
+    build:
+      context: . # Contexte de construction
+      dockerfile: Dockerfile # Chemin vers le Dockerfile
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db # Assurer que l'app se lance après db
+
+volumes:
+  db-data:

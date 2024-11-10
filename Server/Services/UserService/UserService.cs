@@ -45,14 +45,15 @@ namespace Server.Services.UserService
         }
 
         public async Task<User?> LoginAsync(string email, string password)
+
         {
             var user = await _userRepository.GetByEmailAsync(email);
-            if (user == null || !VerifyPassword(password, user.Password))
+            if (user == null || string.IsNullOrEmpty(user.Password) || !VerifyPassword(password, user.Password))
             {
                 throw new Exception("Email ou mot de passe incorrect.");
             }
 
-            // Logique supplémentaire pour marquer l'utilisateur comme connecté si nécessaire
+            // Retourne l'utilisateur si l'authentification est réussie
             return user;
         }
 
