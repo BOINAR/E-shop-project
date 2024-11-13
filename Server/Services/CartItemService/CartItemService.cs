@@ -31,7 +31,7 @@ namespace Server.Services.CartItemService
             await _cartItem.DeleteAsync(cartItemId);
         }
 
-        public async Task<IEnumerable<CartItem>> GetCartItemByIdAsync(int cartItemId)
+        public async Task<IEnumerable<CartItem>> GetCartItemById(int cartItemId)
         {
             return await _cartItem.GetCartItemByIdAsync(cartItemId);
         }

@@ -9,7 +9,7 @@ namespace Server.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok("Bienvenue sur l'application e-commerce !");
+            return Ok("Bienvenue sur l'application e-comm !");
         }
     }
 }

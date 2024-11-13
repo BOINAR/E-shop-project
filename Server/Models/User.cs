@@ -25,7 +25,7 @@ namespace Server.Models
         public string? FirstName { get; set; }
 
         public Address? Address { get; set; }
-        public ICollection<Order>? Orders { get; set; }
+        public ICollection<Order>? Orders { get; set; } = new List<Order>();
     }
 
 

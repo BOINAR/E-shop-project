@@ -22,9 +22,9 @@ namespace Server.Services.CartService
         }
 
         // Récupère le panier d'un utilisateur spécifique
-        public async Task<Cart?> GetCartByUserIdAsync(int userId)
+        public async Task<Cart?> GetCartByUserId(int userId)
         {
-            return await _cartRepository.GetCartByUserIdAsync(userId) 
+            return await _cartRepository.GetCartByUserIdAsync(userId)
                    ?? new Cart { Id = userId, CartItems = new List<CartItem>() };
         }
 
@@ -52,11 +52,11 @@ namespace Server.Services.CartService
             var cart = await _cartRepository.GetCartByUserIdAsync(userId);
             if (cart == null) throw new Exception("cart not found.");
 
-            var existingItem = cart.CartItems?.FirstOrDefault(ci => ci.Id == cartItemId); 
-            if (existingItem == null) { throw new Exception("CartItem not found"); } 
-            existingItem.ProductId = updatedCartItem.ProductId; 
-            existingItem.Quantity = updatedCartItem.Quantity; 
-            existingItem.Price = updatedCartItem.Price; 
+            var existingItem = cart.CartItems?.FirstOrDefault(ci => ci.Id == cartItemId);
+            if (existingItem == null) { throw new Exception("CartItem not found"); }
+            existingItem.ProductId = updatedCartItem.ProductId;
+            existingItem.Quantity = updatedCartItem.Quantity;
+            existingItem.Price = updatedCartItem.Price;
             return await _cartRepository.UpdateCartAsync(cart);
         }
 
@@ -73,7 +73,7 @@ namespace Server.Services.CartService
         // Calcule le total du panier pour un utilisateur
         public async Task<decimal> CalculateCartTotal(int userId)
         {
-            var cart = await GetCartByUserIdAsync(userId);
+            var cart = await GetCartByUserId(userId);
             if (cart == null || cart.CartItems == null) return 0;
 
             return cart.CartItems.Sum(ci => ci.Quantity * (ci.Product?.Price ?? 0));

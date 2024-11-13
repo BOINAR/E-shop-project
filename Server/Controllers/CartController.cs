@@ -5,8 +5,9 @@ using Server.Services.CartService;
 
 namespace Server.Controllers
 {
-    [Route("api/[controller]")]
+
     [ApiController]
+    [Route("api/[controller]")]
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;
@@ -20,7 +21,7 @@ namespace Server.Controllers
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetCart(int userId)
         {
-            var cart = await _cartService.GetCartByUserIdAsync(userId);
+            var cart = await _cartService.GetCartByUserId(userId);
             if (cart == null)
                 return NotFound();
 
@@ -28,10 +29,10 @@ namespace Server.Controllers
         }
 
         // POST: api/Cart/AddItem
-        [HttpPost("AddItem")]
-        public async Task<IActionResult> AddItemToCart([FromBody] CartItem cartItem, int userId)
+        [HttpPost("AddItem/{userId}")]
+        public async Task<IActionResult> AddItemToCart([FromBody] CartItem cartItem, [FromRoute] int userId)
         {
-            var cart = await _cartService.GetCartByUserIdAsync(userId);
+            var cart = await _cartService.GetCartByUserId(userId);
             if (cart == null)
                 return NotFound("Cart not found for the user.");
 
@@ -40,12 +41,12 @@ namespace Server.Controllers
         }
 
         // PUT: api/Cart/UpdateItem
-        [HttpPut("UpdateItem/{cartItemId}")]
+        [HttpPut("UpdateItem/{userId}/{cartItemId}")]
         public async Task<IActionResult> UpdateCartItem(int userId, int cartItemId, [FromBody] CartItem updatedCartItem)
         {
             var result = await _cartService.UpdateCartItem(userId, cartItemId, updatedCartItem);
             if (!result)
-                return NotFound("Cart item not found.");
+                return NotFound("Cart item not found or update failed");
 
             return Ok("Cart item updated successfully.");
         }

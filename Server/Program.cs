@@ -28,6 +28,10 @@ using Microsoft.AspNetCore.Authentication.Certificate;
 var builder = WebApplication.CreateBuilder(args);
 
 
+// Configure les contrôleurs
+builder.Services.AddControllers();
+
+
 
 builder.Services.AddAuthentication(
         CertificateAuthenticationDefaults.AuthenticationScheme)
@@ -37,7 +41,7 @@ builder.Services.AddAuthentication(
 builder.Services.AddAuthorization();
 
 
-builder.Services.AddControllers();
+
 
 // Charger les variables d'environnement à partir d'un fichier .env si nécessaire
 Env.Load();
@@ -106,23 +110,22 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+// app.UseHttpsRedirection();    // Redirection vers HTTPS
+app.UseStaticFiles();         // Pour servir les fichiers statiques (comme CSS, JS, images)
 
+app.UseRouting();             // Active le routage
 
-app.UseRouting();
-// Active l'authentification et l'autorisation
+// Active les middlewares d'authentification et d'autorisation
 app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthorization();  // Gère l'autorisation après l'authentification
 
-
+// Applique la politique CORS à toutes les requêtes
+app.UseCors("AllowAll");
 
 // Mappage des contrôleurs
+app.MapControllers();
 
-app.MapControllers(); // Si vous utilisez des contrôleurs
-
-
-
+// Lancer l'application
 app.Run();
 
 

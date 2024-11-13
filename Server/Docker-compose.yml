@@ -1,28 +1,43 @@
 services:
+  # Service pour la base de données (PostgreSQL)
   db:
     image: postgres:latest
     environment:
       POSTGRES_DB: ${POSTGRES_DB} # Nom de la base de données
-      POSTGRES_USER: ${POSTGRES_USER} # Nom d'utilisateur pour la base de données
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Mot de passe pour l'utilisateur
+      POSTGRES_USER: ${POSTGRES_USER} # Nom d'utilisateur de la base de données
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Mot de passe de l'utilisateur
     ports:
       - "5432:5432" # Port de la base de données
     volumes:
       - db-data:/var/lib/postgresql/data # Volume pour persister les données
+    networks:
+      - app-network
 
+  # Service pour l'application .NET
   app:
     build:
-      context: . # Contexte de construction
-      dockerfile: Dockerfile # Chemin vers le Dockerfile
+      context: . # Contexte de construction (répertoire courant)
+      dockerfile: Dockerfile # Utilise le Dockerfile présent dans le répertoire courant
     environment:
-      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_HOST: ${POSTGRES_HOST} # Nom du service de la base de données (utilisé dans le container)
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "8080:8080"
+      - "8080:8080" # Port de l'application
+    volumes:
+      - ./wwwroot:/app/wwwroot # Monte le répertoire wwwroot pour les fichiers statiques
+      - ./dataProtectionKeys:/root/.aspnet/DataProtection-Keys # Monte le répertoire pour les clés de protection des données
     depends_on:
-      - db # Assurer que l'app se lance après db
+      - db # S'assure que le service db démarre avant l'app
+    networks:
+      - app-network
 
+# Définir un réseau pour que les services puissent communiquer entre eux
+networks:
+  app-network:
+    driver: bridge
+
+# Volume pour persister les données de la base de données
 volumes:
   db-data:

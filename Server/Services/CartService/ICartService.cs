@@ -7,7 +7,7 @@ namespace Server.Services.CartService
     public interface ICartService
     {
         // Récupérer le panier d'un utilisateur spécifique
-        Task<Cart?> GetCartByUserIdAsync(int userId);
+        Task<Cart?> GetCartByUserId(int userId);
 
         // Ajouter un article au panier
         Task<bool> AddItemToCart(Cart cart, CartItem cartItem);
