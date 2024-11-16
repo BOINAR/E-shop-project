@@ -1,27 +1,29 @@
 using Server.Models;
-using Microsoft.EntityFrameworkCore;
 using Server.Repositories.UserRepository;
+using Microsoft.AspNetCore.Identity;
+using Server.Services.RefreshTokenServices;
 
 namespace Server.Services.UserService
 {
 
-    // Services/UserService.cs
-    using System;
-    using System.Threading.Tasks;
-    using Server.Models;
-    using Server.Repositories.UserRepository;
 
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IPasswordHasher<User> _passwordHasher = new PasswordHasher<User>();
+        private readonly RefreshTokenService _refreshTokenService;
+        
 
-        public UserService(IUserRepository userRepository)
+        public UserService(RefreshTokenService refreshTokenService, IUserRepository userRepository)
         {
+          _refreshTokenService = refreshTokenService;
             _userRepository = userRepository;
         }
 
-        public async Task<User?> RegisterAsync(User newUser)
+        public async Task<User?> RegisterAsync(User newUser, string password)
         {
+
+
             // Vérification basique si un utilisateur avec cet email existe déjà
             if (newUser.Email == null)
             {
@@ -34,11 +36,11 @@ namespace Server.Services.UserService
             }
 
             // Hasher le mot de passe avant d'enregistrer l'utilisateur
-            if (newUser.Password == null)
+            if (newUser.PasswordHash == null)
             {
                 throw new Exception("Mot de passe incorrect ou inexistant");
             }
-            newUser.Password = HashPassword(newUser.Password);
+            newUser.PasswordHash = _passwordHasher.HashPassword(newUser, password);
             await _userRepository.AddAsync(newUser);
 
             return newUser;
@@ -47,25 +49,17 @@ namespace Server.Services.UserService
         public async Task<User?> LoginAsync(string email, string password)
 
         {
+
             var user = await _userRepository.GetByEmailAsync(email);
-            if (user == null || string.IsNullOrEmpty(user.Password) || !VerifyPassword(password, user.Password))
+            if (user?.PasswordHash == null) return null;
+
+            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+            if (result == PasswordVerificationResult.Failed)
             {
-                throw new Exception("Email ou mot de passe incorrect.");
+                return null; // Mot de passe incorrect
             }
 
-            // Retourne l'utilisateur si l'authentification est réussie
-            return user;
-        }
-
-        public async Task LogoutAsync(int userId)
-        {
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null)
-            {
-                throw new Exception("Utilisateur non trouvé.");
-            }
-
-            // Logique supplémentaire pour marquer l'utilisateur comme déconnecté si nécessaire
+            return user; // Authentification réussie
         }
 
         public async Task<User?> GetUserByIdAsync(int id)
@@ -73,17 +67,22 @@ namespace Server.Services.UserService
             return await _userRepository.GetByIdAsync(id);
         }
 
-        private string HashPassword(string password)
+        public async Task LogoutAsync(int id)
         {
-            // Logique pour hasher le mot de passe
-            // Ici, tu pourrais utiliser un service de hachage comme BCrypt
-            return password; // Remplace cette ligne par l'algorithme de hachage
+            var user = await GetUserByIdAsync(id);
+
+            if (user == null)
+            {
+                throw new Exception("Utilisateur non trouvé.");
+            }
+
+            // Révoquer tous les refresh tokens de l'utilisateur
+            await _refreshTokenService.RevokeAllRefreshTokensAsync(id);
+
+            // loguer l'événement de déconnexion
+            Console.WriteLine($"Utilisateur {user.Email} déconnecté.");
+
         }
 
-        private bool VerifyPassword(string enteredPassword, string storedPasswordHash)
-        {
-            // Logique pour vérifier si le mot de passe entré correspond au hash
-            return enteredPassword == storedPasswordHash; // Remplace cette ligne par la vérification du hash
-        }
     }
 }

@@ -1,5 +1,7 @@
 // Repositories/UserRepository.cs
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
@@ -19,7 +21,14 @@ namespace Server.Repositories.UserRepository
 
         public async Task<User?> GetByIdAsync(int id)
         {
-            return await _context.Users.FindAsync(id);
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                // Log ou gérer le cas de valeur nulle ici
+                throw new KeyNotFoundException($"User with id {id} was not found.");
+            }
+            return user;
         }
 
         public async Task<User?> GetByEmailAsync(string email)

@@ -16,7 +16,7 @@ namespace Server.Models
 
         [Required]
         [DataType(DataType.Password)]
-        public string? Password { get; set; }
+        public string? PasswordHash { get; set; }
 
         [Required]
         public string? LastName { get; set; }

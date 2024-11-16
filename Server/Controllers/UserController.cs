@@ -19,20 +19,20 @@ namespace Server.Controllers
 
 
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register([FromBody] User newUser)
+        public async Task<ActionResult<User>> Register([FromForm] User newUser, string password)
         {
-            var user = await _userService.RegisterAsync(newUser);
+            var user = await _userService.RegisterAsync(newUser, password);
             return Ok(user);
         }
 
         [HttpPost("Login")]
-        public async Task<ActionResult<User>> Login([FromBody] User loginRequest)
+        public async Task<ActionResult<User>> Login([FromForm] User loginRequest)
         {
-            if (string.IsNullOrEmpty(loginRequest.Email) || string.IsNullOrEmpty(loginRequest.Password))
+            if (string.IsNullOrEmpty(loginRequest.Email) || string.IsNullOrEmpty(loginRequest.PasswordHash))
             {
                 return BadRequest("Email and password are required.");
             }
-            var UserLogin = await _userService.LoginAsync(loginRequest.Email, loginRequest.Password);
+            var UserLogin = await _userService.LoginAsync(loginRequest.Email, loginRequest.PasswordHash);
 
             return Ok(UserLogin);
         }

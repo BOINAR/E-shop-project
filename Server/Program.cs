@@ -14,12 +14,16 @@ using Server.Services.OrderItemService;
 using Server.Services.OrderService;
 using Server.Services.ProductService;
 using Server.Services.UserService;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Server.Services.JwtTokenService;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.Certificate;
+using Server.Services.RefreshTokenServices;
+
 
 
 
@@ -27,15 +31,42 @@ using Microsoft.AspNetCore.Authentication.Certificate;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+
+// Vérifier la présence des clés essentielles dans la configuration
+var secretKeyString = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
+
+if (string.IsNullOrEmpty(secretKeyString))
+{
+    throw new InvalidOperationException("La clé secrète JWT n'est pas définie.");
+}
+var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
+
+
 
 // Configure les contrôleurs
 builder.Services.AddControllers();
 
 
 
-builder.Services.AddAuthentication(
-        CertificateAuthenticationDefaults.AuthenticationScheme)
-    .AddCertificate();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+        ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+    };
+});
 
 // Ajoute les services d'autorisation
 builder.Services.AddAuthorization();
@@ -48,6 +79,7 @@ Env.Load();
 
 // Construction de la chaîne de connexion à partir des variables d'environnement
 var connectionString = $"Host={Environment.GetEnvironmentVariable("POSTGRES_HOST")};" +
+                       $"Port={Environment.GetEnvironmentVariable("POSTGRES_PORT")}; " +
                        $"Database={Environment.GetEnvironmentVariable("POSTGRES_DB")};" +
                        $"Username={Environment.GetEnvironmentVariable("POSTGRES_USER")};" +
                        $"Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")};";
@@ -57,6 +89,7 @@ builder.Services.AddDbContext<EcommerceDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 Console.WriteLine($"Host: {Environment.GetEnvironmentVariable("POSTGRES_HOST")}");
+Console.WriteLine($"Port: {Environment.GetEnvironmentVariable("POSTGRES_PORT")}");
 Console.WriteLine($"Database: {Environment.GetEnvironmentVariable("POSTGRES_DB")}");
 Console.WriteLine($"Username: {Environment.GetEnvironmentVariable("POSTGRES_USER")}");
 Console.WriteLine($"Password: {Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")}");
@@ -80,6 +113,8 @@ builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICartItemService, CartItemService>();
+builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<RefreshTokenService>();
 
 // Ajouter les services nécessaires
 builder.Services.AddCors(options =>
@@ -98,6 +133,28 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+
+// Test de la connexion à la base de données
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<EcommerceDbContext>();
+    try
+    {
+        // Vérifie la connexion à la base de données
+        dbContext.Database.CanConnect();
+        Console.WriteLine("Connexion à la base de données réussie.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Échec de la connexion à la base de données: {ex.Message}");
+    }
+}
+
+// Enregistrer le port d'écoute dans les logs au démarrage
+var port = app.Urls?.FirstOrDefault() ?? "Port inconnu";
+app.Logger.LogInformation($"Application démarrée sur : {port}");
+
+
 
 // Configuration des middlewares
 if (app.Environment.IsDevelopment())
