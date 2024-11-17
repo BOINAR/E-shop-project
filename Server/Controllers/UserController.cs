@@ -16,8 +16,6 @@ namespace Server.Controllers
             _userService = userService;
         }
 
-
-
         [HttpPost("register")]
         public async Task<ActionResult<User>> Register([FromForm] User newUser, string password)
         {
@@ -25,32 +23,21 @@ namespace Server.Controllers
             return Ok(user);
         }
 
-        [ApiController]
-        [Route("api/[controller]")]
-        public class UserController : ControllerBase
+        // Action pour mettre à jour les informations de l'utilisateur
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> UpdateUser(int userId, [FromForm] User updatedUser)
         {
-            private readonly IUserService _userService;
+            // Appeler le service pour effectuer la mise à jour
+            var user = await _userService.UpdateUser(userId, updatedUser);
 
-            public UserController(IUserService userService)
+            if (user == null)
             {
-                _userService = userService;
+                return NotFound("Utilisateur introuvable ou non valide.");
             }
 
-            // Action pour mettre à jour les informations de l'utilisateur
-            [HttpPut("{userId}")]
-            public async Task<IActionResult> UpdateUser(int userId, [FromForm] User updatedUser)
-            {
-                // Appeler le service pour effectuer la mise à jour
-                var user = await _userService.UpdateUserAsync(userId, updatedUser);
-
-                if (user == null)
-                {
-                    return NotFound("Utilisateur introuvable ou non valide.");
-                }
-
-                return Ok(user);
-            }
+            return Ok(user);
         }
+
 
 
 

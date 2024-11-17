@@ -98,7 +98,7 @@ namespace Server.Services.UserService
             await _userRepository.SaveRefreshTokenAsync(user);
         }
         // Méthode pour mettre à jour un utilisateur
-        public async Task UpdateUserAsync(int userId, User updateUser)
+        public async Task<User?> UpdateUser(int userId, User updateUser)
         {
             // Récupérer l'utilisateur existant
             var user = await _userRepository.GetUserByIdAsync(userId);
@@ -120,7 +120,7 @@ namespace Server.Services.UserService
             }
 
             // Mettre à jour l'utilisateur dans la base de données via le repository
-            await _userRepository.UpdateUserAsync(user);
+           return await _userRepository.UpdateUserAsync(user);
         }
 
         public async Task<User?> GetUserByRefreshToken(string refreshToken)

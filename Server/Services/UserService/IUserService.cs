@@ -9,7 +9,7 @@ namespace Server.Services.UserService
         Task LogoutAsync(int userId); // Méthode synchronisée pour la déconnexion
         Task<User?> GetUserById(int userId);
         Task SaveRefreshToken(int userId, string refreshToken);
-        Task UpdateUserAsync(int userId, User updateUser);
+        Task<User?> UpdateUser(int userId, User updateUser);
         Task<User?> GetUserByRefreshToken(string refreshToken);
     }
 }
