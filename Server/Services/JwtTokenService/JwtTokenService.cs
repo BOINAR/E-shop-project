@@ -19,7 +19,7 @@ namespace Server.Services.JwtTokenService
         {
             _configuration = configuration;
         }
-
+        // Genere un access token 
         public string GenerateAccessToken(User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
@@ -65,7 +65,7 @@ namespace Server.Services.JwtTokenService
 
         public string GenerateRefreshToken()
         {
-            // Générer un token de rafraîchissement sous forme de base64
+            // Génére un refresh token sous forme de base64
             return Convert.ToBase64String(Guid.NewGuid().ToByteArray());
         }
     }

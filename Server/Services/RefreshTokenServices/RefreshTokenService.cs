@@ -1,4 +1,5 @@
 using Server.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Server.Services.RefreshTokenServices
 {
@@ -13,13 +14,20 @@ namespace Server.Services.RefreshTokenServices
 
         public async Task RevokeAllRefreshTokensAsync(int userId)
         {
-            var tokens = _context?.RefreshTokens?.Where(rt => rt.UserId == userId);
-            if (tokens == null) { throw new Exception("token is null"); }
-            foreach (var token in tokens)
+            // Récupérer un seul token (le refresh token) pour cet utilisateur
+            var token = await _context.RefreshTokens
+                                      .Where(rt => rt.UserId == userId)
+                                      .FirstOrDefaultAsync(); // Récupère le premier ou aucun token
+
+            if (token == null)
             {
-                token.IsRevoked = true;
+                throw new Exception("Aucun token trouvé pour cet utilisateur.");
             }
-            if (_context == null) { throw new Exception("context is null"); }
+
+            // Marquer le token comme révoqué
+            token.IsRevoked = true;
+
+            // Sauvegarder les modifications dans la base de données
             await _context.SaveChangesAsync();
         }
     }

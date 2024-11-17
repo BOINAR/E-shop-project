@@ -43,7 +43,7 @@ namespace Server.Repositories.UserRepository
             return user;
         }
 
-        public async Task<User?> UpdateAsync(User user)
+        public async Task<User?> UpdateUserAsync(User user)
         {
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
@@ -58,6 +58,30 @@ namespace Server.Repositories.UserRepository
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<User?> GetUserByRefreshTokenAsync(string refreshToken)
+        {
+            // Rechercher un utilisateur avec le RefreshToken spécifié
+            return await _context.Users
+                .Where(u => u.RefreshToken == refreshToken)
+                .FirstOrDefaultAsync();  // Utilise FirstOrDefaultAsync pour renvoyer un utilisateur ou null
+        }
+
+        public async Task SaveRefreshTokenAsync(int userId, string refreshToken)
+        {
+            // Trouver l'utilisateur par son ID
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                throw new Exception("Utilisateur introuvable.");
+            }
+
+            // Mettre à jour le RefreshToken
+            user.RefreshToken = refreshToken;
+
+            // Sauvegarder les modifications
+            await _context.SaveChangesAsync();
         }
     }
 }

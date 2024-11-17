@@ -12,11 +12,11 @@ namespace Server.Services.UserService
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher<User> _passwordHasher = new PasswordHasher<User>();
         private readonly RefreshTokenService _refreshTokenService;
-        
+
 
         public UserService(RefreshTokenService refreshTokenService, IUserRepository userRepository)
         {
-          _refreshTokenService = refreshTokenService;
+            _refreshTokenService = refreshTokenService;
             _userRepository = userRepository;
         }
 
@@ -36,11 +36,11 @@ namespace Server.Services.UserService
             }
 
             // Hasher le mot de passe avant d'enregistrer l'utilisateur
-            if (newUser.PasswordHash == null)
+            if (newUser.Password == null)
             {
                 throw new Exception("Mot de passe incorrect ou inexistant");
             }
-            newUser.PasswordHash = _passwordHasher.HashPassword(newUser, password);
+            newUser.Password = _passwordHasher.HashPassword(newUser, password);
             await _userRepository.AddAsync(newUser);
 
             return newUser;
@@ -51,9 +51,9 @@ namespace Server.Services.UserService
         {
 
             var user = await _userRepository.GetByEmailAsync(email);
-            if (user?.PasswordHash == null) return null;
+            if (user?.Password == null) return null;
 
-            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+            var result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
             if (result == PasswordVerificationResult.Failed)
             {
                 return null; // Mot de passe incorrect
@@ -82,6 +82,47 @@ namespace Server.Services.UserService
             // loguer l'événement de déconnexion
             Console.WriteLine($"Utilisateur {user.Email} déconnecté.");
 
+        }
+
+        public async Task SaveRefreshTokenAsync(int userId, string refreshToken)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception($"Utilisateur avec l'ID {userId} introuvable.");
+            }
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Par exemple, valide 7 jours
+
+            await _userRepository.SaveRefreshTokenAsync(user);
+        }
+        // Méthode pour mettre à jour un utilisateur
+        public async Task<User> UpdateUserAsync(int userId, User updateUser)
+        {
+            // Récupérer l'utilisateur existant
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("Utilisateur introuvable.");
+            }
+
+            // Logique métier : Mise à jour des informations
+            user.UserName = updateUser.UserName ?? user.UserName;
+            user.Email = updateUser.Email ?? user.Email;
+            user.FirstName = updateUser.FirstName ?? user.FirstName;
+            user.LastName = updateUser.LastName ?? user.LastName;
+
+            // Si un nouveau mot de passe est fourni, on le hache et on le met à jour
+            if (!string.IsNullOrEmpty(updateUser.Password))
+            {
+                user.Password = _passwordHasher.HashPassword(user, updateUser.Password);  // Hachage du mot de passe
+            }
+
+            // Mettre à jour l'utilisateur dans la base de données via le repository
+            await _userRepository.UpdateUserAsync(user);
+
+            return user;
         }
 
     }

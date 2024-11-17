@@ -25,24 +25,35 @@ namespace Server.Controllers
             return Ok(user);
         }
 
-        [HttpPost("Login")]
-        public async Task<ActionResult<User>> Login([FromForm] User loginRequest)
+        [ApiController]
+        [Route("api/[controller]")]
+        public class UserController : ControllerBase
         {
-            if (string.IsNullOrEmpty(loginRequest.Email) || string.IsNullOrEmpty(loginRequest.PasswordHash))
-            {
-                return BadRequest("Email and password are required.");
-            }
-            var UserLogin = await _userService.LoginAsync(loginRequest.Email, loginRequest.PasswordHash);
+            private readonly IUserService _userService;
 
-            return Ok(UserLogin);
+            public UserController(IUserService userService)
+            {
+                _userService = userService;
+            }
+
+            // Action pour mettre à jour les informations de l'utilisateur
+            [HttpPut("{userId}")]
+            public async Task<IActionResult> UpdateUser(int userId, [FromForm] User updatedUser)
+            {
+                // Appeler le service pour effectuer la mise à jour
+                var user = await _userService.UpdateUserAsync(userId, updatedUser);
+
+                if (user == null)
+                {
+                    return NotFound("Utilisateur introuvable ou non valide.");
+                }
+
+                return Ok(user);
+            }
         }
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout(int userId)
-        {
-            // Logique pour déconnecter l'utilisateur
-            await _userService.LogoutAsync(userId);
-            return Ok(); // Retourne une réponse 200 OK
-        }
+
+
+
 
     }
 }

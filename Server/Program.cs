@@ -25,6 +25,8 @@ using Microsoft.AspNetCore.Authentication.Certificate;
 using Server.Services.RefreshTokenServices;
 
 
+// Charger les variables d'environnement à partir d'un fichier .env si nécessaire
+Env.Load();
 
 
 // Ajoute les services d'autorisation
@@ -74,12 +76,11 @@ builder.Services.AddAuthorization();
 
 
 
-// Charger les variables d'environnement à partir d'un fichier .env si nécessaire
-Env.Load();
+
 
 // Construction de la chaîne de connexion à partir des variables d'environnement
 var connectionString = $"Host={Environment.GetEnvironmentVariable("POSTGRES_HOST")};" +
-                       $"Port={Environment.GetEnvironmentVariable("POSTGRES_PORT")}; " +
+                       $"Port={Environment.GetEnvironmentVariable("POSTGRES_PORT")};" +
                        $"Database={Environment.GetEnvironmentVariable("POSTGRES_DB")};" +
                        $"Username={Environment.GetEnvironmentVariable("POSTGRES_USER")};" +
                        $"Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")};";
@@ -181,6 +182,18 @@ app.UseCors("AllowAll");
 
 // Mappage des contrôleurs
 app.MapControllers();
+
+// Détection et affichage des URLs
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    var addresses = app.Urls;
+    foreach (var address in addresses)
+    {
+        app.Logger.LogInformation($"Application démarrée et écoute sur : {address}");
+    }
+});
+
+
 
 // Lancer l'application
 app.Run();

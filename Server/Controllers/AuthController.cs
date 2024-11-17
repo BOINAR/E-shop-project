@@ -3,38 +3,73 @@ using Server.Models;
 using Server.Services.UserService;
 using Server.Services.JwtTokenService;
 
+
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly UserService _userService;
-    private readonly JwtTokenService _JwtTokenService;
+    private readonly IUserService _userService;
+    private readonly JwtTokenService _jwtTokenService;
 
-    public AuthController(UserService userService, JwtTokenService jwtTokenService)
+    public AuthController(IUserService userService, JwtTokenService jwtTokenService)
     {
         _userService = userService;
-        _JwtTokenService = jwtTokenService;
+        _jwtTokenService = jwtTokenService;
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
+    public async Task<IActionResult> Login([FromForm] LoginRequest loginRequest)
     {
         if (loginRequest == null || string.IsNullOrEmpty(loginRequest.Email) || string.IsNullOrEmpty(loginRequest.Password))
         {
             return BadRequest("Les informations de connexion sont manquantes.");
         }
 
-        // Appel à la méthode LoginAsync qui connecte et Authentifie l'utilisateur
         var user = await _userService.LoginAsync(loginRequest.Email, loginRequest.Password);
         if (user == null)
         {
             return Unauthorized("Email ou mot de passe incorrect.");
         }
 
-        // Générer l'access token
-        var token = _JwtTokenService.GenerateAccessToken(user);
+        var accessToken = _jwtTokenService.GenerateAccessToken(user);
+        var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
-        // Retourner le token dans la réponse
-        return Ok(new { Token = token });
+        await _userService.SaveRefreshToken(user.Id, refreshToken);
+
+        return Ok(new { AccessToken = accessToken, RefreshToken = refreshToken });
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
+    {
+        if (request == null)
+        {
+            return BadRequest("La requête est invalide, elle ne peut pas être nulle.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.RefreshToken))
+        {
+            return BadRequest("Le Refresh Token est requis.");
+        }
+
+        var user = await _userService.GetUserByRefreshToken(request.RefreshToken);
+        if (user == null)
+        {
+            return Unauthorized("Invalid refresh token");
+        }
+
+        var newAccessToken = _jwtTokenService.GenerateAccessToken(user);
+        var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
+
+        await _userService.SaveRefreshTokenAsync(user.Id, newRefreshToken);
+
+        return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout([FromBody] int userId)
+    {
+        await _userService.LogoutAsync(userId);
+        return NoContent();
     }
 }

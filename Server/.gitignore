@@ -25,3 +25,5 @@ artifacts/
 # Ignorer les fichiers spécifiques à macOS
 .DS_Store
 .AppleDouble
+
+/dataProtectionKeys/
