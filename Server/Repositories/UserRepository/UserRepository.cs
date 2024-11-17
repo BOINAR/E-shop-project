@@ -19,24 +19,24 @@ namespace Server.Repositories.UserRepository
             _context = context;
         }
 
-        public async Task<User?> GetByIdAsync(int id)
+        public async Task<User?> GetUserByIdAsync(int userId)
         {
 
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users.FindAsync(userId);
             if (user == null)
             {
                 // Log ou gérer le cas de valeur nulle ici
-                throw new KeyNotFoundException($"User with id {id} was not found.");
+                throw new KeyNotFoundException($"User with id {userId} was not found.");
             }
             return user;
         }
 
-        public async Task<User?> GetByEmailAsync(string email)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<User> AddAsync(User user)
+        public async Task<User> AddUserAsync(User user)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -50,9 +50,9 @@ namespace Server.Repositories.UserRepository
             return user;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteUserAsync(int userId)
         {
-            var user = await GetByIdAsync(id);
+            var user = await GetUserByIdAsync(userId);
             if (user == null) return false;
 
             _context.Users.Remove(user);
@@ -68,17 +68,9 @@ namespace Server.Repositories.UserRepository
                 .FirstOrDefaultAsync();  // Utilise FirstOrDefaultAsync pour renvoyer un utilisateur ou null
         }
 
-        public async Task SaveRefreshTokenAsync(int userId, string refreshToken)
+        public async Task SaveRefreshTokenAsync(User user)
         {
-            // Trouver l'utilisateur par son ID
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null)
-            {
-                throw new Exception("Utilisateur introuvable.");
-            }
-
-            // Mettre à jour le RefreshToken
-            user.RefreshToken = refreshToken;
+            _context.Users.Update(user);
 
             // Sauvegarder les modifications
             await _context.SaveChangesAsync();

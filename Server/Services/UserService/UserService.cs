@@ -29,7 +29,7 @@ namespace Server.Services.UserService
             {
                 throw new Exception("Email incorrect ou inexistant");
             }
-            var existingUser = await _userRepository.GetByEmailAsync(newUser.Email);
+            var existingUser = await _userRepository.GetUserByEmailAsync(newUser.Email);
             if (existingUser != null)
             {
                 throw new Exception("Un utilisateur avec cet email existe déjà.");
@@ -41,7 +41,7 @@ namespace Server.Services.UserService
                 throw new Exception("Mot de passe incorrect ou inexistant");
             }
             newUser.Password = _passwordHasher.HashPassword(newUser, password);
-            await _userRepository.AddAsync(newUser);
+            await _userRepository.AddUserAsync(newUser);
 
             return newUser;
         }
@@ -50,7 +50,7 @@ namespace Server.Services.UserService
 
         {
 
-            var user = await _userRepository.GetByEmailAsync(email);
+            var user = await _userRepository.GetUserByEmailAsync(email);
             if (user?.Password == null) return null;
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
@@ -62,14 +62,14 @@ namespace Server.Services.UserService
             return user; // Authentification réussie
         }
 
-        public async Task<User?> GetUserByIdAsync(int id)
+        public async Task<User?> GetUserById(int userId)
         {
-            return await _userRepository.GetByIdAsync(id);
+            return await _userRepository.GetUserByIdAsync(userId);
         }
 
-        public async Task LogoutAsync(int id)
+        public async Task LogoutAsync(int userId)
         {
-            var user = await GetUserByIdAsync(id);
+            var user = await GetUserById(userId);
 
             if (user == null)
             {
@@ -77,16 +77,16 @@ namespace Server.Services.UserService
             }
 
             // Révoquer tous les refresh tokens de l'utilisateur
-            await _refreshTokenService.RevokeAllRefreshTokensAsync(id);
+            await _refreshTokenService.RevokeAllRefreshTokensAsync(userId);
 
             // loguer l'événement de déconnexion
             Console.WriteLine($"Utilisateur {user.Email} déconnecté.");
 
         }
 
-        public async Task SaveRefreshTokenAsync(int userId, string refreshToken)
+        public async Task SaveRefreshToken(int userId, string refreshToken)
         {
-            var user = await _userRepository.GetUserByIdAsync(userId);
+            var user = await GetUserById(userId);
             if (user == null)
             {
                 throw new Exception($"Utilisateur avec l'ID {userId} introuvable.");
@@ -98,7 +98,7 @@ namespace Server.Services.UserService
             await _userRepository.SaveRefreshTokenAsync(user);
         }
         // Méthode pour mettre à jour un utilisateur
-        public async Task<User> UpdateUserAsync(int userId, User updateUser)
+        public async Task UpdateUserAsync(int userId, User updateUser)
         {
             // Récupérer l'utilisateur existant
             var user = await _userRepository.GetUserByIdAsync(userId);
@@ -121,8 +121,13 @@ namespace Server.Services.UserService
 
             // Mettre à jour l'utilisateur dans la base de données via le repository
             await _userRepository.UpdateUserAsync(user);
+        }
 
-            return user;
+        public async Task<User?> GetUserByRefreshToken(string refreshToken)
+        {
+
+          return  await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
+
         }
 
     }
