@@ -11,8 +11,10 @@ namespace Server.Repositories.UserRepository
         Task<User> AddUserAsync(User user); // Ajouter un nouvel utilisateur
         Task<User?> UpdateUserAsync(User user); // Mettre à jour un utilisateur existant
         Task<bool> DeleteUserAsync(int UserId); // Supprimer un utilisateur par son ID
-        Task SaveRefreshTokenAsync(User user);
+        Task SaveRefreshTokenAsync(RefreshToken refreshToken);
+
         Task<User?> GetUserByRefreshTokenAsync(string refreshToken);
+       
     }
 
 }

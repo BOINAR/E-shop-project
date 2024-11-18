@@ -34,7 +34,7 @@ public class AuthController : ControllerBase
         var accessToken = _jwtTokenService.GenerateAccessToken(user);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
-        await _userService.SaveRefreshToken(user.Id, refreshToken);
+        await _userService.SaveRefreshToken(user, refreshToken);
 
         return Ok(new { AccessToken = accessToken, RefreshToken = refreshToken });
     }
@@ -42,33 +42,32 @@ public class AuthController : ControllerBase
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
     {
-        if (request == null)
-        {
-            return BadRequest("La requête est invalide, elle ne peut pas être nulle.");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.RefreshToken))
+        if (request == null || string.IsNullOrWhiteSpace(request.RefreshToken))
         {
             return BadRequest("Le Refresh Token est requis.");
         }
 
-        var user = await _userService.GetUserByRefreshToken(request.RefreshToken);
+        // Valider le token et récupérer l'utilisateur
+        var user = await _userService.ValidateRefreshTokenAsync(request.RefreshToken);
         if (user == null)
         {
-            return Unauthorized("Invalid refresh token");
+            return Unauthorized("Le Refresh Token est invalide ou expiré.");
         }
 
+        // Générer de nouveaux tokens
         var newAccessToken = _jwtTokenService.GenerateAccessToken(user);
         var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
 
-        await _userService.SaveRefreshToken(user.Id, newRefreshToken);
+        // Sauvegarder le nouveau refresh token
+        await _userService.SaveRefreshToken(user, newRefreshToken);
 
         return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
     }
 
-    [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] int userId)
+    [HttpPost("logout/{userId}")]
+    public async Task<IActionResult> Logout([FromRoute] int userId)
     {
+        Console.WriteLine($"Déconnexion de l'utilisateur {userId}");
         await _userService.LogoutAsync(userId);
         return NoContent();
     }

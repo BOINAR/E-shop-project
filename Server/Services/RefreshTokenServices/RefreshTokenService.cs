@@ -12,22 +12,21 @@ namespace Server.Services.RefreshTokenServices
             _context = context;
         }
 
-        public async Task RevokeAllRefreshTokensAsync(int userId)
+        public async Task RevokeRefreshToken(int userId)
         {
-            // Récupérer un seul token (le refresh token) pour cet utilisateur
+            // Récupérer le refreshtoken pour cet utilisateur
             var token = await _context.RefreshTokens
                                       .Where(rt => rt.UserId == userId)
-                                      .FirstOrDefaultAsync(); // Récupère le premier ou aucun token
+                                      .FirstOrDefaultAsync(); // Récupère le token
 
             if (token == null)
             {
-                throw new Exception("Aucun token trouvé pour cet utilisateur.");
+                throw new Exception("Token introuvable.");
             }
 
-            // Marquer le token comme révoqué
-            token.IsRevoked = true;
+            token.Revoked = DateTime.UtcNow; // Met à jour la propriété Revoked
 
-            // Sauvegarder les modifications dans la base de données
+            // Sauvegarde des modifications
             await _context.SaveChangesAsync();
         }
     }

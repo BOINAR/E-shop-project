@@ -8,8 +8,9 @@ namespace Server.Services.UserService
         Task<User?> LoginAsync(string email, string password); // Méthode asynchrone pour la connexion
         Task LogoutAsync(int userId); // Méthode synchronisée pour la déconnexion
         Task<User?> GetUserById(int userId);
-        Task SaveRefreshToken(int userId, string refreshToken);
+        Task SaveRefreshToken(User user, string refreshToken);
         Task<User?> UpdateUser(int userId, User updateUser);
-        Task<User?> GetUserByRefreshToken(string refreshToken);
+        Task<User?> ValidateRefreshTokenAsync(string refreshToken);
+
     }
 }

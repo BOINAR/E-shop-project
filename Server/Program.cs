@@ -151,9 +151,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Enregistrer le port d'écoute dans les logs au démarrage
-var port = app.Urls?.FirstOrDefault() ?? "Port inconnu";
-app.Logger.LogInformation($"Application démarrée sur : {port}");
 
 
 

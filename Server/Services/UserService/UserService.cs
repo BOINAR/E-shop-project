@@ -13,11 +13,14 @@ namespace Server.Services.UserService
         private readonly IPasswordHasher<User> _passwordHasher = new PasswordHasher<User>();
         private readonly RefreshTokenService _refreshTokenService;
 
+        private readonly ILogger<AuthController> _logger;
 
-        public UserService(RefreshTokenService refreshTokenService, IUserRepository userRepository)
+
+        public UserService(RefreshTokenService refreshTokenService, IUserRepository userRepository, ILogger<AuthController> logger)
         {
             _refreshTokenService = refreshTokenService;
             _userRepository = userRepository;
+            _logger = logger;
         }
 
         public async Task<User?> RegisterAsync(User newUser, string password)
@@ -69,34 +72,63 @@ namespace Server.Services.UserService
 
         public async Task LogoutAsync(int userId)
         {
+
+            // Loguer la tentative de déconnexion
+            _logger.LogInformation($"Tentative de déconnexion pour l'utilisateur avec l'ID {userId}.");
+
             var user = await GetUserById(userId);
 
             if (user == null)
             {
+                // Loguer si l'utilisateur n'est pas trouvé
+                _logger.LogWarning($"Aucun utilisateur trouvé avec l'ID {userId}.");
                 throw new Exception("Utilisateur non trouvé.");
             }
 
-            // Révoquer tous les refresh tokens de l'utilisateur
-            await _refreshTokenService.RevokeAllRefreshTokensAsync(userId);
+            // Loguer la déconnexion de l'utilisateur
+            _logger.LogInformation($"Utilisateur {user.Email} déconnecté.");
 
-            // loguer l'événement de déconnexion
-            Console.WriteLine($"Utilisateur {user.Email} déconnecté.");
+            // Révoquer les refresh tokens
+            await _refreshTokenService.RevokeRefreshToken(userId);
 
         }
 
-        public async Task SaveRefreshToken(int userId, string refreshToken)
+        public async Task SaveRefreshToken(User user, string refreshToken)
         {
-            var user = await GetUserById(userId);
-            if (user == null)
+            try
             {
-                throw new Exception($"Utilisateur avec l'ID {userId} introuvable.");
+                // Crée un nouvel objet RefreshToken pour la table RefreshTokens
+                var refreshTokenEntity = new RefreshToken
+                {
+                    UserId = user.Id, // Associe le refreshToken à l'utilisateur
+                    Token = refreshToken,
+                    Expires = DateTime.UtcNow.AddDays(7),  // Par exemple, expiration dans 7 jours
+                    Created = DateTime.UtcNow,
+                };
+
+                // Ajoute le refreshToken à la table RefreshTokens
+                await _userRepository.SaveRefreshTokenAsync(refreshTokenEntity);
+
+                // Sauvegarde les changements dans la base de donnée
             }
-
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Par exemple, valide 7 jours
-
-            await _userRepository.SaveRefreshTokenAsync(user);
+            catch (Exception ex)
+            {
+                // Gérer les erreurs ici
+                throw new Exception("Erreur lors de la sauvegarde du refresh token.", ex);
+            }
         }
+
+        public async Task<User?> ValidateRefreshTokenAsync(string refreshToken)
+        {
+            var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
+            if (user == null)
+                return null;
+
+            return user;
+        }
+
+
+
         // Méthode pour mettre à jour un utilisateur
         public async Task<User?> UpdateUser(int userId, User updateUser)
         {
@@ -120,15 +152,9 @@ namespace Server.Services.UserService
             }
 
             // Mettre à jour l'utilisateur dans la base de données via le repository
-           return await _userRepository.UpdateUserAsync(user);
+            return await _userRepository.UpdateUserAsync(user);
         }
 
-        public async Task<User?> GetUserByRefreshToken(string refreshToken)
-        {
-
-          return  await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
-
-        }
 
     }
 }

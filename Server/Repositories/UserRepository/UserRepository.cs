@@ -62,18 +62,30 @@ namespace Server.Repositories.UserRepository
 
         public async Task<User?> GetUserByRefreshTokenAsync(string refreshToken)
         {
-            // Rechercher un utilisateur avec le RefreshToken spécifié
-            return await _context.Users
-                .Where(u => u.RefreshToken == refreshToken)
-                .FirstOrDefaultAsync();  // Utilise FirstOrDefaultAsync pour renvoyer un utilisateur ou null
+            return await _context.RefreshTokens
+                .Where(rt => rt.Token == refreshToken && !rt.Revoked.HasValue && rt.Expires > DateTime.UtcNow)
+                .Select(rt => rt.User) // Navigation vers l'utilisateur associé
+                .FirstOrDefaultAsync();
         }
 
-        public async Task SaveRefreshTokenAsync(User user)
+        public async Task SaveRefreshTokenAsync(RefreshToken refreshToken)
         {
-            _context.Users.Update(user);
+            try
+            {
+                // Met à jour l'utilisateur dans la base de données
+                await _context.RefreshTokens.AddAsync(refreshToken);
 
-            // Sauvegarder les modifications
-            await _context.SaveChangesAsync();
+                // Sauvegarde les changements dans la base de données
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Gérer les erreurs ici
+                // Log l'erreur et/ou lance une exception pour signaler qu'il y a eu un problème lors de la sauvegarde
+                // Par exemple, tu pourrais loguer l'erreur avec un logger ou gérer plus finement l'exception
+                throw new Exception("Erreur lors de la sauvegarde du refresh token.", ex);
+            }
+
         }
     }
 }

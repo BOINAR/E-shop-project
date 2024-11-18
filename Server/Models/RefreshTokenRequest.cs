@@ -1,4 +1,8 @@
-public class RefreshTokenRequest
+namespace Server.Models
 {
-    public string? RefreshToken { get; set; }
+    public class RefreshTokenRequest
+    {
+        public string? RefreshToken { get; set; }
+    }
 }
+

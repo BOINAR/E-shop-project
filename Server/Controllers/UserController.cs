@@ -17,7 +17,7 @@ namespace Server.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register([FromForm] User newUser, string password)
+        public async Task<ActionResult<User>> Register([FromForm] User newUser, [FromForm] string password)
         {
             var user = await _userService.RegisterAsync(newUser, password);
             return Ok(user);
