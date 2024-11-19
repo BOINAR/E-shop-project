@@ -114,7 +114,7 @@ builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICartItemService, CartItemService>();
-builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<JWTtokenService>();
 builder.Services.AddScoped<RefreshTokenService>();
 
 // Ajouter les services nécessaires

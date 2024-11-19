@@ -19,8 +19,20 @@ namespace Server.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<User>> Register([FromForm] User newUser, [FromForm] string password)
         {
-            var user = await _userService.RegisterAsync(newUser, password);
-            return Ok(user);
+            try
+            {
+                // Appeler la méthode du service pour enregistrer l'utilisateur
+                var user = await _userService.RegisterAsync(newUser, password);
+
+                // Retourner une réponse OK avec l'utilisateur créé
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                // En cas d'erreur, retourner une BadRequest ou autre selon le type d'erreur
+                return BadRequest(ex.Message);
+            }
+
         }
 
         // Action pour mettre à jour les informations de l'utilisateur

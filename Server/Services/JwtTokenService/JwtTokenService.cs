@@ -11,11 +11,11 @@ using Server.Models;
 namespace Server.Services.JwtTokenService
 {
 
-    public class JwtTokenService
+    public class JWTtokenService
     {
         private readonly IConfiguration _configuration;
 
-        public JwtTokenService(IConfiguration configuration)
+        public JWTtokenService(IConfiguration configuration)
         {
             _configuration = configuration;
         }

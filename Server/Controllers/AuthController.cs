@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Server.Models;
 using Server.Services.UserService;
 using Server.Services.JwtTokenService;
+using Server.Services.RefreshTokenServices;
 
 
 [ApiController]
@@ -9,12 +10,16 @@ using Server.Services.JwtTokenService;
 public class AuthController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly JwtTokenService _jwtTokenService;
+    private readonly JWTtokenService _jwtTokenService;
+    private readonly RefreshTokenService _refreshTokenService;
+    private readonly ILogger<RefreshTokenRequest> _logger;
 
-    public AuthController(IUserService userService, JwtTokenService jwtTokenService)
+    public AuthController(IUserService userService, JWTtokenService jwtTokenService, RefreshTokenService refreshTokenService, ILogger<RefreshTokenRequest> logger)
     {
         _userService = userService;
         _jwtTokenService = jwtTokenService;
+        _refreshTokenService = refreshTokenService;
+        _logger = logger;
     }
 
     [HttpPost("login")]
@@ -30,6 +35,11 @@ public class AuthController : ControllerBase
         {
             return Unauthorized("Email ou mot de passe incorrect.");
         }
+
+        // Révoquer l'ancien refresh token s'il existe
+
+        await _refreshTokenService.RevokeRefreshToken(user.Id);
+
 
         var accessToken = _jwtTokenService.GenerateAccessToken(user);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
@@ -49,20 +59,34 @@ public class AuthController : ControllerBase
 
         // Valider le token et récupérer l'utilisateur
         var user = await _userService.ValidateRefreshTokenAsync(request.RefreshToken);
-        if (user == null)
+        try
         {
-            return Unauthorized("Le Refresh Token est invalide ou expiré.");
+            if (user == null)
+            {
+                return Unauthorized("Le Refresh Token est invalide ou expiré.");
+            }
+
+            // Révoquer l'ancien refresh token
+            await _refreshTokenService.RevokeRefreshToken(user.Id);
+
+            // Générer de nouveaux tokens
+            var newAccessToken = _jwtTokenService.GenerateAccessToken(user);
+            var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
+
+            // Sauvegarder le nouveau refresh token
+            await _userService.SaveRefreshToken(user, newRefreshToken);
+
+            return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
         }
 
-        // Générer de nouveaux tokens
-        var newAccessToken = _jwtTokenService.GenerateAccessToken(user);
-        var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
-
-        // Sauvegarder le nouveau refresh token
-        await _userService.SaveRefreshToken(user, newRefreshToken);
-
-        return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
+        catch (Exception ex)
+        {
+            var userIdInfo = user!.Id!.ToString();
+            _logger.LogError($"Échec de la révocation des Refresh Tokens pour l'utilisateur {user.Id}.", ex);
+            return StatusCode(500, "Erreur interne.");
+        }
     }
+
 
     [HttpPost("logout/{userId}")]
     public async Task<IActionResult> Logout([FromRoute] int userId)

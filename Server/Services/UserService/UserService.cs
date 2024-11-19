@@ -2,6 +2,7 @@ using Server.Models;
 using Server.Repositories.UserRepository;
 using Microsoft.AspNetCore.Identity;
 using Server.Services.RefreshTokenServices;
+using Server.Services.JwtTokenService;
 
 namespace Server.Services.UserService
 {
@@ -12,26 +13,28 @@ namespace Server.Services.UserService
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher<User> _passwordHasher = new PasswordHasher<User>();
         private readonly RefreshTokenService _refreshTokenService;
+        private readonly JWTtokenService _JwtTokenService;
 
         private readonly ILogger<AuthController> _logger;
 
 
-        public UserService(RefreshTokenService refreshTokenService, IUserRepository userRepository, ILogger<AuthController> logger)
+        public UserService(RefreshTokenService refreshTokenService, IUserRepository userRepository, ILogger<AuthController> logger, JWTtokenService JwtTokenService)
         {
+            _JwtTokenService = JwtTokenService;
             _refreshTokenService = refreshTokenService;
             _userRepository = userRepository;
             _logger = logger;
         }
 
+        // Méthode d'enregistrement de l'utilisateur
         public async Task<User?> RegisterAsync(User newUser, string password)
         {
-
-
             // Vérification basique si un utilisateur avec cet email existe déjà
-            if (newUser.Email == null)
+            if (string.IsNullOrEmpty(newUser.Email))
             {
                 throw new Exception("Email incorrect ou inexistant");
             }
+
             var existingUser = await _userRepository.GetUserByEmailAsync(newUser.Email);
             if (existingUser != null)
             {
@@ -39,14 +42,23 @@ namespace Server.Services.UserService
             }
 
             // Hasher le mot de passe avant d'enregistrer l'utilisateur
-            if (newUser.Password == null)
+            if (string.IsNullOrEmpty(password))
             {
                 throw new Exception("Mot de passe incorrect ou inexistant");
             }
-            newUser.Password = _passwordHasher.HashPassword(newUser, password);
-            await _userRepository.AddUserAsync(newUser);
 
-            return newUser;
+            newUser.Password = _passwordHasher.HashPassword(newUser, password);
+
+            // Enregistrer l'utilisateur dans la base de données
+            var savedUser = await _userRepository.AddUserAsync(newUser);
+
+            // Générer un nouveau refresh token
+            var refreshToken = _JwtTokenService.GenerateRefreshToken();
+
+            // Enregistrer le refresh token dans la base de données
+            await SaveRefreshToken(savedUser, refreshToken);
+
+            return savedUser;
         }
 
         public async Task<User?> LoginAsync(string email, string password)
